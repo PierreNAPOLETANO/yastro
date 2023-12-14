@@ -89,15 +89,9 @@ def readfits(f,verbose=False) :
 #   or remember to flip the image manually in Gimp.
 def writefits(x,f,overwrite=True,flip=False,swap=False) :
     if len(x.size()) > 2 :
-        if flip == True :
-            im = np.flipud(x.movedim(2,0).numpy())
-        else :
-            im = x.movedim(2,0).numpy()
+        im = np.flipud(x.movedim(2,0).numpy()) if flip == True else x.movedim(2,0).numpy()
     else :
-        if flip == True :        
-            im = np.flipud(x.numpy())
-        else :
-            im = x.numpy()
+        im = np.flipud(x.numpy()) if flip == True else x.numpy()
     if swap == True :
         im = im.byteswap()
         
@@ -440,15 +434,9 @@ def findstars(x,
         if verbose : print("findstars: detected ",len(sources)," raw stars")
         filtermask = []
         for element in sources['npix']:
-            if element < max_area :
-                filtermask.append(True)
-            else:
-                filtermask.append(False)
+            filtermask.append(element < max_area)
         sources = sources[filtermask]
-        if  max_count == 0 :
-            stars = sources
-        else :
-            stars = sources[0:max_count]
+        stars = sources if max_count == 0 else sources[0:max_count]
         if verbose : print("findstars: found ",len(stars)," stars")        
         return np.array([[asrc["x"], asrc["y"]] for asrc in stars])
     except :
@@ -721,10 +709,7 @@ def read_rawseq(flist,verbose=False) :
     fnames=[]
     for f in flist :
         if verbose : print("*** reading:",f)
-        if f[0] == "@" :
-            image = torch.flip(readfits(f[1:]), [0,1])  # file name starts with '@' rotate by 180 degrees
-        else:
-            image = readfits(f)
+        image = torch.flip(readfits(f[1:]), [0,1]) if f[0] == "@" else readfits(f)
         if not (image is None) :
             rawseq.append(image)
             fnames.append(f)
